@@ -192,6 +192,7 @@ RCT_REMAP_METHOD(show,
             [jsResult setObject:tokenizedApplePayPayment.nonce forKey:@"nonce"];
             [jsResult setObject:tokenizedApplePayPayment.localizedDescription forKey:@"type"];
             [jsResult setObject:tokenizedApplePayPayment.type forKey:@"description"];
+            [jsResult setObject:payment.billingContact.postalAddress.postalCode forKey:@"billingPostalCode"];
             self.resolve(jsResult);
             completion(PKPaymentAuthorizationStatusSuccess);
         } else {
