@@ -196,30 +196,28 @@ RCT_REMAP_METHOD(show,
                                               NSError *error) {
         if (tokenizedApplePayPayment) {
             // Then indicate success or failure via the completion callback, e.g.
-            [self handleSuccessTokenizeApplePayPayment: tokenizedApplePayPayment
-                                            completion: completion];
+            
+            NSMutableDictionary* jsResult = [NSMutableDictionary new];
+            [jsResult setObject:tokenizedApplePayPayment.nonce forKey:@"nonce"];
+            [jsResult setObject:tokenizedApplePayPayment.localizedDescription forKey:@"type"];
+            [jsResult setObject:tokenizedApplePayPayment.type forKey:@"description"];
+            [jsResult setObject:payment.billingContact.postalAddress.postalCode forKey:@"billingPostalCode"];
+            [self.dataCollector collectFraudData:^(NSString * _Nonnull deviceData) {
+                [jsResult setObject:deviceData forKey:@"deviceData"];
+                self.resolve(jsResult);
+                self.resolve = NULL;
+                self.reject = NULL;
+                completion(PKPaymentAuthorizationStatusSuccess);
+            }];
         } else {
             // Tokenization failed. Check `error` for the cause of the failure.
             self.reject(error.localizedDescription, error.localizedDescription, error);
             // Indicate failure via the completion callback:
             completion(PKPaymentAuthorizationStatusFailure);
-        }
+        
         self.resolve = NULL;
         self.reject = NULL;
-    }];
-}
-
-- (void)handleSuccessTokenizeApplePayPayment:(BTApplePayCardNonce *)tokenizedApplePayPayment
-                                  completion:(void (^)(PKPaymentAuthorizationStatus))completion {
-
-    NSMutableDictionary* jsResult = [NSMutableDictionary new];
-    [jsResult setObject:tokenizedApplePayPayment.nonce forKey:@"nonce"];
-    [jsResult setObject:tokenizedApplePayPayment.localizedDescription forKey:@"type"];
-    [jsResult setObject:tokenizedApplePayPayment.type forKey:@"description"];
-    [self.dataCollector collectFraudData:^(NSString * _Nonnull deviceData) {
-        [jsResult setObject:deviceData forKey:@"deviceData"];
-        self.resolve(jsResult);
-        completion(PKPaymentAuthorizationStatusSuccess);
+        }
     }];
 }
 
